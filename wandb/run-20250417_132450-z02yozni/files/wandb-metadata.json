@@ -1,0 +1,40 @@
+{
+  "os": "Windows-10-10.0.26100-SP0",
+  "python": "CPython 3.10.9",
+  "startedAt": "2025-04-17T10:24:50.729489Z",
+  "program": "<python with no main file>",
+  "git": {
+    "remote": "https://github.com/adigew/DI725_termproject_2030336.git",
+    "commit": "84c69a50be95564c23b53fdcf01f9e04fce8af1c"
+  },
+  "email": "nesilbor38@gmail.com",
+  "root": "c:\\Users\\nesil\\Desktop\\odtu-yuksek\\DI725_termproject_2030336",
+  "host": "Nesil-G3",
+  "executable": "c:\\Users\\nesil\\anaconda3\\python.exe",
+  "cpu_count": 6,
+  "cpu_count_logical": 12,
+  "gpu": "NVIDIA GeForce GTX 1660 Ti with Max-Q Design",
+  "gpu_count": 1,
+  "disk": {
+    "/": {
+      "total": "492536066048",
+      "used": "305513623552"
+    }
+  },
+  "memory": {
+    "total": "16976957440"
+  },
+  "cpu": {
+    "count": 6,
+    "countLogical": 12
+  },
+  "gpu_nvidia": [
+    {
+      "name": "NVIDIA GeForce GTX 1660 Ti with Max-Q Design",
+      "memoryTotal": "6442450944",
+      "cudaCores": 1536,
+      "architecture": "Turing"
+    }
+  ],
+  "cudaVersion": "12.7"
+}
