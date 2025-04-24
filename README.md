@@ -6,4 +6,4 @@ project proposal. The second phase will cover the preliminary results and benchm
 the project with results and comparisons.
 There will be a base vision-language foundation model (PaliGemma) that is suitable for various tasks including but
 not limited to visual question answering, image captioning and object detection. Our task is to generate image
-captions. We will structure your own research question, and propose a project to build on top of this foundation.
+captions. We will structure our own research question, and propose a project to build on top of this foundation.
