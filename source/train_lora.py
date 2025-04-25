@@ -3,6 +3,7 @@ from transformers import PaliGemmaForConditionalGeneration, PaliGemmaProcessor
 from peft import LoraConfig, get_peft_model
 from datasets import load_from_disk
 import wandb
+from PIL import Image
 
 def prepare_dataset(dataset, processor):
     def preprocess(example):
@@ -11,16 +12,17 @@ def prepare_dataset(dataset, processor):
         return {
             'input_ids': inputs['input_ids'].squeeze(),
             'attention_mask': inputs['attention_mask'].squeeze(),
-            'pixel_values': inputs['pixel_values'].squeeze()    
+            'pixel_values': inputs['pixel_values'].squeeze()
         }
     return dataset.map(preprocess, remove_columns=['image', 'caption', 'split'])
 
-def train_lora(model_name, dataset_path, output_dir, lora_rank=8, epochs=3):
+def train_lora(model_name, dataset_path, output_dir, lora_rank=8, epochs=3, learning_rate=1e-5):
     # Initialize WANDB
-    wandb.init(project="DI725_Phase2", config={"lora_rank": lora_rank, "epochs": epochs})
+    wandb.init(project="DI725_Phase2", config={"lora_rank": lora_rank, "epochs": epochs, "lr": learning_rate})
     
     # Load model and processor
-    model = PaliGemmaForConditionalGeneration.from_pretrained(model_name)
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    model = PaliGemmaForConditionalGeneration.from_pretrained(model_name).to(device)
     processor = PaliGemmaProcessor.from_pretrained(model_name)
     
     # Apply LoRA
@@ -38,23 +40,29 @@ def train_lora(model_name, dataset_path, output_dir, lora_rank=8, epochs=3):
     val_dataset = prepare_dataset(dataset.filter(lambda x: x['split'] == 'val'), processor)
     
     # Training setup
-    optimizer = torch.optim.AdamW(model.parameters(), lr=1e-5)
+    optimizer = torch.optim.AdamW(model.parameters(), lr=learning_rate)
     model.train()
     
     for epoch in range(epochs):
-        for batch in train_dataset.iter(batch_size=8):
+        total_loss = 0
+        for i, batch in enumerate(train_dataset.iter(batch_size=8)):
             outputs = model(
-                input_ids=batch['input_ids'].to(model.device),
-                attention_mask=batch['attention_mask'].to(model.device),
-                pixel_values=batch['pixel_values'].to(model.device),
-                labels=batch['input_ids'].to(model.device)
+                input_ids=batch['input_ids'].to(device),
+                attention_mask=batch['attention_mask'].to(device),
+                pixel_values=batch['pixel_values'].to(device),
+                labels=batch['input_ids'].to(device)
             )
             loss = outputs.loss
             loss.backward()
             optimizer.step()
             optimizer.zero_grad()
             
-            wandb.log({"epoch": epoch, "train_loss": loss.item()})
+            total_loss += loss.item()
+            if (i + 1) % 10 == 0:
+                print(f"Epoch {epoch+1}, Step {i+1}, Loss: {loss.item():.4f}")
+        
+        avg_train_loss = total_loss / len(train_dataset)
+        wandb.log({"epoch": epoch+1, "train_loss": avg_train_loss})
         
         # Validation
         model.eval()
@@ -62,14 +70,15 @@ def train_lora(model_name, dataset_path, output_dir, lora_rank=8, epochs=3):
         for batch in val_dataset.iter(batch_size=8):
             with torch.no_grad():
                 outputs = model(
-                    input_ids=batch['input_ids'].to(model.device),
-                    attention_mask=batch['attention_mask'].to(model.device),
-                    pixel_values=batch['pixel_values'].to(model.device),
-                    labels=batch['input_ids'].to(model.device)
+                    input_ids=batch['input_ids'].to(device),
+                    attention_mask=batch['attention_mask'].to(device),
+                    pixel_values=batch['pixel_values'].to(device),
+                    labels=batch['input_ids'].to(device)
                 )
                 val_loss += outputs.loss.item()
-        val_loss /= len(val_dataset)
-        wandb.log({"epoch": epoch, "val_loss": val_loss})
+        avg_val_loss = val_loss / len(val_dataset)
+        wandb.log({"epoch": epoch+1, "val_loss": avg_val_loss})
+        print(f"Epoch {epoch+1}, Validation Loss: {avg_val_loss:.4f}")
         model.train()
     
     # Save model
