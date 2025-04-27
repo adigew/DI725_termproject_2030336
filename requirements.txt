@@ -1,1 +1,8 @@
-torch>=2.0.0 transformers>=4.38.0 peft>=0.10.0 datasets>=2.18.0 pycocoevalcap>=1.2 wandb>=0.16.0 numpy>=1.26.0 pillow>=10.0.0
+torch>=2.0.0
+transformers>=4.38.0
+peft>=0.10.0
+datasets>=2.18.0
+pycocoevalcap>=1.2
+wandb>=0.16.0
+numpy>=1.26.0
+pillow>=10.0.0
