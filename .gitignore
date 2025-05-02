@@ -1,5 +1,6 @@
 # Ignore data
 data/
+source/models
 
 # Ignore model save
 
