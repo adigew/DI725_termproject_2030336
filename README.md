@@ -24,3 +24,15 @@ captions. We will structure our own research question, and propose a project to 
    - Use batch processing and gradient accumulation
    - Run training and download model
 Note: Reduced max_train_samples to 500 to avoid CUDA out of memory on T4 GPU.
+
+3. Upload code and dataset to a Kaggle notebook
+
+Enable GPU (P100) runtime from Notebook Settings
+
+- Install dependencies: `pip install -r requirements.txt`
+- Set environment variable: `os.environ['PYTORCH_CUDA_ALLOC_CONF'] = 'expandable_segments:True'`
+
+- Use small training partitions (e.g., max_train_samples=100) to stay within GPU memory limits
+- Log experiments to Weights & Biases for tracking
+- Save models to /kaggle/working for download
+Note: Training large models like PaliGemma on full datasets is not feasible due to P100 memory constraints. Use reduced sample sizes and lightweight configurations (e.g., LoRA rank 8 or 4).
